@@ -15,6 +15,7 @@ const pool = new Pool ({
 
 
 
+const main = async ()=>{
 const createTable = async ()=>{
 
   
@@ -34,6 +35,7 @@ const createTable = async ()=>{
   )`;
 
   await pool.query(query)
+}
 
   app.post('/artisans', async (req, res) => {
     try {
@@ -88,11 +90,49 @@ const createTable = async ()=>{
     }
 
   });
+  app.put ("/artisans/:id" , async (req, res) => {
+    try{
+      const id = req.params.id;
+      const { name, address, profession, age, phonenumber, email, city, rating, description }= req.body;
+      const query = "UPDATE artisans SET name = $1, address = $2, profession = $3, age = $4, phonenumber = $5, email = $6, city = $7, rating = $8, description = $9  WHERE id = $10";
+      const result = await pool.query(query,[name, address, profession, age, phonenumber, email, city, rating, description,id]);
+
+      if (result.rowCount > 0){
+        res.status(200).json({message: 'Artisan updated successfully'} );
+      }else{
+        res.status(404).send({error: 'Artisan not found'});
+      }
+    } catch (error) {
+      console.error ("Error updating artisan :", error);
+      res.status(500).json({
+        error: "Failed to update artisan",
+      })
+    }
+
+  });
+  app.delete ('/artisans/:id', async (req, res) => {
+    try{
+      const id = req.params.id;
+      const query = `DELETE FROM artisans WHERE id = $1`;
+      const result = await pool.query(query, [id]);
+
+    if (result.rowCount > 0) {
+    res.status(200).json({ message: 'Artisan deleted successfully'} );
+    } else {
+    res.status(404).json({ error: 'Artisan not found' });
+    }
+    } catch(error) {
+      console.error('Error deleting artisan:', error);
+      res.status(500).json({ 
+        error: 'Failed to delete artisan',
+  });
+}
+});
   app.listen(port, () =>{
       console.log(`Server running on port ${port}`);
   });
 }
-createTable();
+main();
 
 
 
